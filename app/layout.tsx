@@ -1,4 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css"; // <- esto va primero
+import BootstrapClient from "./components/BootstrapClient"
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import type { Metadata } from "next";
@@ -28,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <BootstrapClient />
         <Navbar />
         {children}
       </body>
