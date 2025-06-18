@@ -1,5 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css"; // <- esto va primero
-import BootstrapClient from "./components/BootstrapClient"
+import BootstrapClient from "../components/BootstrapClient"
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import type { Metadata } from "next";
