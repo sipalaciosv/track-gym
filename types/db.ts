@@ -41,5 +41,6 @@ export interface WorkoutSet {
 export interface Profile {
   id: string
   nombre?: string
+   email?: string   
   created_at: string
 }

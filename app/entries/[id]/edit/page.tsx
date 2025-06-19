@@ -69,6 +69,18 @@ export default function EditEntryPage() {
             ))}
           </select>
         </div>
+        {/* Fecha */}
+        <div className="mb-3">
+          <label className="form-label">Fecha</label>
+          <input
+            className="form-control"
+            name="fecha"
+            type="date"
+            value={entry.fecha ? entry.fecha.slice(0, 10) : ""}
+            onChange={handleChange}
+            required
+          />
+        </div>
         {/* Ejercicio */}
         <div className="mb-3">
           <label className="form-label">Ejercicio</label>

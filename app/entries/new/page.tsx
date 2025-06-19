@@ -6,6 +6,7 @@ import { createClient } from "@/utils/supabase/client"
 import { Profile, Exercise, Machine } from "@/types/db"
 
 export default function NewEntryPage() {
+  const USUARIOS_ESPECIALES = ["25f3ef1e-4f7f-4da0-acdd-0ae9d47a22f2", "f769f136-ba9d-4f14-a9bd-b5eaab8d973c"]
   const [usuarios, setUsuarios] = useState<Profile[]>([])
   const [ejercicios, setEjercicios] = useState<Exercise[]>([])
   const [maquinas, setMaquinas] = useState<Machine[]>([])
@@ -24,6 +25,8 @@ export default function NewEntryPage() {
   const [error, setError] = useState("")
   const router = useRouter()
   const supabase = createClient()
+const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   // Para agregar ejercicio/máquina en línea
   const [showNewExercise, setShowNewExercise] = useState(false)
@@ -33,12 +36,23 @@ export default function NewEntryPage() {
   const [miniError, setMiniError] = useState("")
 
   useEffect(() => {
+    // Obtener usuario autenticado
+    supabase.auth.getUser().then(({ data }) => {
+      setCurrentUserEmail(data?.user?.email ?? null)
+      setCurrentUserId(data?.user?.id ?? null)
+      // Si no es admin, selecciona su propio usuario por defecto
+      if (data?.user?.email !== "thexzebagb@live.com" && data?.user?.id) {
+        setUserId(data.user.id)
+      }
+    })
+  }, [])
+  useEffect(() => {
     supabase.from("profiles").select("*").then(({ data }) => setUsuarios(data ?? []))
     supabase.from("exercises").select("*").then(({ data }) => setEjercicios(data ?? []))
     supabase.from("machines").select("*").then(({ data }) => setMaquinas(data ?? []))
     // eslint-disable-next-line
   }, [])
-
+  
   // Nuevo ejercicio en línea (NO usa form, usa div y botón)
   const handleAddNewExercise = async () => {
     setMiniError("")
@@ -74,7 +88,10 @@ export default function NewEntryPage() {
       setMiniError(error.message)
     }
   }
-
+const getCurrentUserName = () => {
+  const user = usuarios.find(u => u.id === currentUserId)
+  return user?.nombre || user?.id || ""
+}
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -97,7 +114,9 @@ export default function NewEntryPage() {
     setLoading(false)
 
     if (dbError) setError(dbError.message)
-    else router.push("/entries")
+    else {
+      alert('¡Entrada creada exitosamente!');
+    }   
   }
 
   return (
@@ -105,19 +124,32 @@ export default function NewEntryPage() {
       <h2>Registrar entrenamiento</h2>
       <form onSubmit={handleSubmit} autoComplete="off">
         <div className="mb-3">
-          <label className="form-label">Usuario *</label>
-          <select
-            className="form-select"
-            value={userId}
-            onChange={e => setUserId(e.target.value)}
-            required
-          >
-            <option value="">Seleccione usuario</option>
-            {usuarios.map(u => (
-              <option key={u.id} value={u.id}>{u.nombre || u.id}</option>
-            ))}
-          </select>
-        </div>
+  <label className="form-label">Usuario *</label>
+  {currentUserEmail === "thexzebagb@live.com" ? (
+    <select
+      className="form-select"
+      value={userId}
+      onChange={e => setUserId(e.target.value)}
+      required
+    >
+      <option value="">Seleccione usuario</option>
+      {usuarios
+        .filter(u => USUARIOS_ESPECIALES.includes(u.id)) // SOLO estos dos
+        .map(u => (
+          <option key={u.id} value={u.id}>{u.nombre || u.id}</option>
+        ))
+      }
+    </select>
+  ) : (
+    <input
+      type="text"
+      className="form-control"
+      value={getCurrentUserName()}
+      disabled
+      readOnly
+    />
+  )}
+</div>
         <div className="mb-3">
           <label className="form-label">Fecha *</label>
           <input

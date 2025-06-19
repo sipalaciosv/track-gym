@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, ChangeEvent } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { Machine } from "@/types/db"
 
@@ -14,6 +14,8 @@ export default function MachinesPage() {
   const [editName, setEditName] = useState("")
   const [editDesc, setEditDesc] = useState("")
   const [editFotoUrl, setEditFotoUrl] = useState("")
+  const [editImageFile, setEditImageFile] = useState<File | null>(null)
+  const [editUploading, setEditUploading] = useState(false)
 
   const supabase = createClient()
 
@@ -37,21 +39,57 @@ export default function MachinesPage() {
     setEditName(machine.nombre || "")
     setEditDesc(machine.descripcion || "")
     setEditFotoUrl(machine.foto_url || "")
+    setEditImageFile(null)
     setShowEditModal(true)
+  }
+
+  // Handle file select
+  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files && e.target.files[0]
+    if (file) setEditImageFile(file)
   }
 
   async function handleEditSave() {
     if (!machineToEdit) return
+    setEditUploading(true)
+
+    let finalFotoUrl = editFotoUrl
+
+    // Si el usuario sube un archivo, súbelo al bucket y usa esa url
+    if (editImageFile) {
+      const ext = editImageFile.name.split('.').pop()
+      const fileName = `maquinas/${editName.replace(/\s+/g, '_')}_${Date.now()}.${ext}`
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("maquinas") // Asegúrate que el bucket se llama así
+        .upload(fileName, editImageFile, {
+          cacheControl: "3600",
+          upsert: true,
+        })
+      if (uploadError) {
+        alert("Error subiendo imagen: " + uploadError.message)
+        setEditUploading(false)
+        return
+      }
+      // El path público
+      const { data: publicUrl } = supabase.storage
+        .from("maquinas")
+        .getPublicUrl(fileName)
+      finalFotoUrl = publicUrl.publicUrl
+    }
+
+    // Actualiza la máquina en la base de datos
     const { error, data } = await supabase
       .from("machines")
       .update({
         nombre: editName,
         descripcion: editDesc,
-        foto_url: editFotoUrl,
+        foto_url: finalFotoUrl,
       })
       .eq("id", machineToEdit.id)
       .select()
       .single()
+    setEditUploading(false)
+
     if (!error && data) {
       setMachines(
         machines.map(m =>
@@ -154,25 +192,31 @@ export default function MachinesPage() {
               />
             </div>
             <div className="mb-2">
-              <label className="form-label">URL de foto</label>
+              <label className="form-label">Foto</label>
               <input
+                type="file"
+                accept="image/*"
                 className="form-control"
-                value={editFotoUrl}
-                onChange={e => setEditFotoUrl(e.target.value)}
+                onChange={handleFileChange}
               />
+              {editFotoUrl && (
+                <img src={editFotoUrl} alt="actual" style={{ maxHeight: 100, marginTop: 8 }} />
+              )}
             </div>
             <div className="d-flex gap-2 justify-content-end mt-2">
               <button
                 className="btn btn-secondary btn-sm"
                 onClick={() => setShowEditModal(false)}
+                disabled={editUploading}
               >
                 Cancelar
               </button>
               <button
                 className="btn btn-success btn-sm"
                 onClick={handleEditSave}
+                disabled={editUploading}
               >
-                Guardar
+                {editUploading ? "Guardando..." : "Guardar"}
               </button>
             </div>
           </div>
