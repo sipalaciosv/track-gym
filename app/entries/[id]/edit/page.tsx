@@ -18,6 +18,7 @@ export default function EditEntryPage() {
   const [maquinas, setMaquinas] = useState<Machine[]>([])
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
+  const [lastEntry, setLastEntry] = useState<any>(null) 
 
   useEffect(() => {
     // Traer la entrada actual
@@ -35,6 +36,26 @@ export default function EditEntryPage() {
     if (!entry) return
     setEntry({ ...entry, [e.target.name]: e.target.value })
   }
+  useEffect(() => {
+  // Solo busca si hay usuario y ejercicio seleccionados
+  if (!entry?.user_id || !entry?.exercise_id) {
+    setLastEntry(null)
+    return
+  }
+  // Busca la última entrada del usuario para ese ejercicio, *excluyendo* la actual
+  supabase
+    .from("workout_entries")
+    .select("*")
+    .eq("user_id", entry.user_id)
+    .eq("exercise_id", entry.exercise_id)
+    .neq("id", id)
+    .order("fecha", { ascending: false })
+    .limit(1)
+    .then(({ data }) => {
+      if (data && data.length > 0) setLastEntry(data[0])
+      else setLastEntry(null)
+    })
+}, [entry?.user_id, entry?.exercise_id, id])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,6 +105,7 @@ export default function EditEntryPage() {
         {/* Ejercicio */}
         <div className="mb-3">
           <label className="form-label">Ejercicio</label>
+          
           <select
             className="form-select"
             name="exercise_id"
@@ -95,6 +117,15 @@ export default function EditEntryPage() {
               <option key={ej.id} value={ej.id}>{ej.nombre}</option>
             ))}
           </select>
+          {lastEntry && (
+  <div className="alert alert-info mt-2">
+    <strong>Última vez:</strong>{" "}
+    {lastEntry.fecha?.slice(0,10)} — 
+    {lastEntry.series_total || "-"} series de {lastEntry.reps_total || "-"} reps, 
+    {lastEntry.peso ? `${lastEntry.peso} ${lastEntry.tipo_peso || ""}` : "-"}
+  </div>
+)}
+
         </div>
         {/* Máquina */}
         <div className="mb-3">
