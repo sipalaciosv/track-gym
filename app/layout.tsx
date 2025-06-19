@@ -1,4 +1,4 @@
-import "bootstrap/dist/css/bootstrap.min.css"; // <- esto va primero
+import "bootstrap/dist/css/bootstrap.min.css"; 
 import BootstrapClient from "../components/BootstrapClient"
 import "./globals.css";
 import Navbar from "@/components/Navbar";
