@@ -4,12 +4,14 @@ import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
 import { Profile, Exercise, Machine } from "@/types/db"
+import Select from "react-select"
 
 export default function NewEntryPage() {
   const USUARIOS_ESPECIALES = ["25f3ef1e-4f7f-4da0-acdd-0ae9d47a22f2", "f769f136-ba9d-4f14-a9bd-b5eaab8d973c"]
   const [usuarios, setUsuarios] = useState<Profile[]>([])
   const [ejercicios, setEjercicios] = useState<Exercise[]>([])
   const [maquinas, setMaquinas] = useState<Machine[]>([])
+const [lastEntry, setLastEntry] = useState<any>(null)  // Puedes tipar mejor si tienes tu tipo WorkoutEntry
 
   // Estados para nueva entrada
   const [userId, setUserId] = useState<string>("")
@@ -52,7 +54,24 @@ const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null)
     supabase.from("machines").select("*").then(({ data }) => setMaquinas(data ?? []))
     // eslint-disable-next-line
   }, [])
-  
+    useEffect(() => {
+  if (!userId || !exerciseId) {
+    setLastEntry(null)
+    return
+  }
+  supabase
+    .from("workout_entries")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("exercise_id", exerciseId)
+    .order("fecha", { ascending: false })
+    .limit(1)
+    .then(({ data }) => {
+      if (data && data.length > 0) setLastEntry(data[0])
+      else setLastEntry(null)
+    })
+}, [userId, exerciseId])
+
   // Nuevo ejercicio en línea (NO usa form, usa div y botón)
   const handleAddNewExercise = async () => {
     setMiniError("")
@@ -162,6 +181,15 @@ const getCurrentUserName = () => {
         </div>
         {/* ----------- EJERCICIO ------------ */}
         <div className="mb-3">
+          {lastEntry && (
+          <div className="alert alert-info mt-2">
+            <strong>Última vez:</strong>{" "}
+            {lastEntry.fecha?.slice(0,10)} — 
+            {lastEntry.series_total || "-"} series de {lastEntry.reps_total || "-"} reps, 
+            {lastEntry.peso ? `${lastEntry.peso} ${lastEntry.tipo_peso || ""}` : "-"}
+          </div>
+        )}
+
           <label className="form-label">Ejercicio *</label>
           <div className="d-flex align-items-center gap-2">
             <select
