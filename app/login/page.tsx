@@ -29,7 +29,7 @@ export default function LoginPage() {
       setError(error.message);
     } else {
       // Redirecciona al dashboard si el login fue exitoso
-      router.push("/dashboard");
+      window.location.href = "/entries";
     }
   };
 
