@@ -36,6 +36,17 @@ const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null)
   const [showNewMachine, setShowNewMachine] = useState(false)
   const [newMachineName, setNewMachineName] = useState("")
   const [miniError, setMiniError] = useState("")
+const exerciseOptions = ejercicios.map(ej => ({
+  value: ej.id,
+  label: ej.nombre,
+  image: ej.gif_url || ej.foto_url || "",
+}));
+
+const machineOptions = maquinas.map(m => ({
+  value: m.id,
+  label: m.nombre,
+  image: m.foto_url || "",
+}));
 
   useEffect(() => {
     // Obtener usuario autenticado
@@ -137,6 +148,59 @@ const getCurrentUserName = () => {
       alert('¡Entrada creada exitosamente!');
     }   
   }
+ function OptionWithImage({ data }: { data: { label: string; image?: string } }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      {data.image && (
+        <img
+          src={data.image}
+          alt={data.label}
+          style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 6, background: "#f3f3f3" }}
+        />
+      )}
+      <span>{data.label}</span>
+    </div>
+  )
+}
+const customSelectStyles = {
+  control: (provided: any, state: any) => ({
+    ...provided,
+    backgroundColor: 'var(--background)',
+    color: 'var(--foreground)',
+    borderColor: state.isFocused ? '#009688' : '#888',
+    boxShadow: state.isFocused ? '0 0 0 1px #009688' : 'none',
+  }),
+  menu: (provided: any) => ({
+    ...provided,
+    backgroundColor: 'var(--background)',
+    color: 'var(--foreground)',
+    zIndex: 9999,
+  }),
+  option: (provided: any, state: any) => ({
+    ...provided,
+    backgroundColor: state.isSelected
+      ? '#00968822'
+      : state.isFocused
+      ? '#00968811'
+      : 'var(--background)',
+    color: 'var(--foreground)',
+    cursor: 'pointer',
+  }),
+  singleValue: (provided: any) => ({
+    ...provided,
+    color: 'var(--foreground)',
+  }),
+  input: (provided: any) => ({
+    ...provided,
+    color: 'var(--foreground)',
+  }),
+  placeholder: (provided: any) => ({
+    ...provided,
+    color: '#aaa',
+  }),
+};
+
+
 
   return (
     <div className="container mt-5" style={{ maxWidth: 600 }}>
@@ -180,121 +244,132 @@ const getCurrentUserName = () => {
           />
         </div>
         {/* ----------- EJERCICIO ------------ */}
-        <div className="mb-3">
-          {lastEntry && (
-          <div className="alert alert-info mt-2">
-            <strong>Última vez:</strong>{" "}
-            {lastEntry.fecha?.slice(0,10)} — 
-            {lastEntry.series_total || "-"} series de {lastEntry.reps_total || "-"} reps, 
-            {lastEntry.peso ? `${lastEntry.peso} ${lastEntry.tipo_peso || ""}` : "-"}
-          </div>
-        )}
+        
 
-          <label className="form-label">Ejercicio *</label>
-          <div className="d-flex align-items-center gap-2">
-            <select
-              className="form-select"
-              style={{ flex: 1 }}
-              value={exerciseId}
-              onChange={e => setExerciseId(e.target.value)}
-              required
-            >
-              <option value="">Seleccione ejercicio</option>
-              {ejercicios.map(ej => (
-                <option key={ej.id} value={ej.id}>{ej.nombre}</option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className="btn btn-outline-primary btn-sm"
-              onClick={() => {
-                setShowNewExercise(!showNewExercise)
-                setMiniError("")
-              }}
-            >
-              + Nuevo
-            </button>
-          </div>
-          {showNewExercise && (
-            <div className="mt-2 d-flex gap-2 align-items-center">
-              <input
-                className="form-control"
-                placeholder="Nombre ejercicio"
-                value={newExerciseName}
-                onChange={e => setNewExerciseName(e.target.value)}
-                required
-                autoFocus
-              />
-              <button
-                type="button"
-                className="btn btn-success btn-sm"
-                onClick={handleAddNewExercise}
-              >
-                Guardar
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => { setShowNewExercise(false); setMiniError("") }}
-              >
-                Cancelar
-              </button>
-            </div>
-          )}
-        </div>
+<div className="mb-3">
+  {lastEntry && (
+    <div className="alert alert-info mt-2">
+      <strong>Última vez:</strong>{" "}
+      {lastEntry.fecha?.slice(0,10)} — 
+      {lastEntry.series_total || "-"} series de {lastEntry.reps_total || "-"} reps, 
+      {lastEntry.peso ? `${lastEntry.peso} ${lastEntry.tipo_peso || ""}` : "-"}
+    </div>
+  )}
+
+  <label className="form-label">Ejercicio *</label>
+  <div className="d-flex align-items-center gap-2">
+    <div style={{ flex: 1 }}>
+      <Select
+        options={exerciseOptions}
+        value={exerciseOptions.find(opt => opt.value === exerciseId) || null}
+        onChange={opt => setExerciseId(opt?.value || "")}
+        placeholder="Buscar ejercicio..."
+        formatOptionLabel={(option) => <OptionWithImage data={option} />}
+        isClearable
+        styles={{
+          //usamos el estilo personalizado
+          ...customSelectStyles,
+        }}
+        noOptionsMessage={() => "Sin resultados"}
+      />
+    </div>
+    <button
+      type="button"
+      className="btn btn-outline-primary btn-sm"
+      onClick={() => {
+        setShowNewExercise(!showNewExercise)
+        setMiniError("")
+      }}
+    >
+      + Nuevo
+    </button>
+  </div>
+  {showNewExercise && (
+    <div className="mt-2 d-flex gap-2 align-items-center">
+      <input
+        className="form-control"
+        placeholder="Nombre ejercicio"
+        value={newExerciseName}
+        onChange={e => setNewExerciseName(e.target.value)}
+        required
+        autoFocus
+      />
+      <button
+        type="button"
+        className="btn btn-success btn-sm"
+        onClick={handleAddNewExercise}
+      >
+        Guardar
+      </button>
+      <button
+        type="button"
+        className="btn btn-secondary btn-sm"
+        onClick={() => { setShowNewExercise(false); setMiniError("") }}
+      >
+        Cancelar
+      </button>
+    </div>
+  )}
+</div>
+
         {/* ----------- MÁQUINA ------------ */}
-        <div className="mb-3">
-          <label className="form-label">Máquina</label>
-          <div className="d-flex align-items-center gap-2">
-            <select
-              className="form-select"
-              style={{ flex: 1 }}
-              value={machineId}
-              onChange={e => setMachineId(e.target.value)}
-            >
-              <option value="">(Ninguna)</option>
-              {maquinas.map(m => (
-                <option key={m.id} value={m.id}>{m.nombre}</option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className="btn btn-outline-primary btn-sm"
-              onClick={() => {
-                setShowNewMachine(!showNewMachine)
-                setMiniError("")
-              }}
-            >
-              + Nueva
-            </button>
-          </div>
-          {showNewMachine && (
-            <div className="mt-2 d-flex gap-2 align-items-center">
-              <input
-                className="form-control"
-                placeholder="Nombre máquina"
-                value={newMachineName}
-                onChange={e => setNewMachineName(e.target.value)}
-                required
-                autoFocus
-              />
-              <button
-                type="button"
-                className="btn btn-success btn-sm"
-                onClick={handleAddNewMachine}
-              >
-                Guardar
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => { setShowNewMachine(false); setMiniError("") }}
-              >
-                Cancelar
-              </button>
-            </div>
-          )}
-        </div>
+ <div className="mb-3">
+  <label className="form-label">Máquina</label>
+  <div className="d-flex align-items-center gap-2">
+    <div style={{ flex: 1 }}>
+      <Select
+        options={machineOptions}
+        value={machineOptions.find(opt => opt.value === machineId) || null}
+        onChange={opt => setMachineId(opt?.value || "")}
+        placeholder="Buscar máquina..."
+        formatOptionLabel={(option) => <OptionWithImage data={option} />}
+        isClearable
+        styles={{
+          //usamos el estilo personalizado
+          ...customSelectStyles,
+        }}
+        noOptionsMessage={() => "Sin resultados"}
+      />
+    </div>
+    <button
+      type="button"
+      className="btn btn-outline-primary btn-sm"
+      onClick={() => {
+        setShowNewMachine(!showNewMachine)
+        setMiniError("")
+      }}
+    >
+      + Nueva
+    </button>
+  </div>
+  {showNewMachine && (
+    <div className="mt-2 d-flex gap-2 align-items-center">
+      <input
+        className="form-control"
+        placeholder="Nombre máquina"
+        value={newMachineName}
+        onChange={e => setNewMachineName(e.target.value)}
+        required
+        autoFocus
+      />
+      <button
+        type="button"
+        className="btn btn-success btn-sm"
+        onClick={handleAddNewMachine}
+      >
+        Guardar
+      </button>
+      <button
+        type="button"
+        className="btn btn-secondary btn-sm"
+        onClick={() => { setShowNewMachine(false); setMiniError("") }}
+      >
+        Cancelar
+      </button>
+    </div>
+  )}
+</div>
+
         {/* ----------- Series, reps, peso, comentario ------------ */}
         <div className="mb-3 row">
           <div className="col">
