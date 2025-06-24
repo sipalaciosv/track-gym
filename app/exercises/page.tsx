@@ -16,6 +16,7 @@ export default function ExercisesPage() {
   const [editDesc, setEditDesc] = useState("")
   const [editGrupo, setEditGrupo] = useState("")
   const [editMachineId, setEditMachineId] = useState<string | null>("") // <- NUEVO
+const [editGifUrl, setEditGifUrl] = useState("")
 
   function openEditModal(ex: Exercise & { machine: Machine | null }) {
     setExerciseToEdit(ex)
@@ -23,6 +24,7 @@ export default function ExercisesPage() {
     setEditDesc(ex.descripcion || "")
     setEditGrupo(ex.grupo_muscular || "")
     setEditMachineId(ex.machine ? ex.machine.id : "") // <- NUEVO
+     setEditGifUrl(ex.gif_url || "")  
     setShowEditModal(true)
   }
 
@@ -34,7 +36,8 @@ export default function ExercisesPage() {
         nombre: editName,
         descripcion: editDesc,
         grupo_muscular: editGrupo,
-        machine_id: editMachineId || null // <- ACTUALIZADO
+        machine_id: editMachineId || null, // <- ACTUALIZADO
+        gif_url: editGifUrl,  
       })
       .eq("id", exerciseToEdit.id)
       .select("*, machine:machines(*)")
@@ -89,14 +92,23 @@ export default function ExercisesPage() {
         {exercises.map((ex) => (
           <div key={ex.id} className="col-md-4 mb-4">
             <div className="card h-100">
-              {ex.foto_url && (
-                <img
-                  src={ex.foto_url}
-                  alt={ex.nombre}
-                  className="card-img-top"
-                  style={{ objectFit: "cover", height: 180 }}
-                />
-              )}
+              {ex.gif_url && (
+              <img
+                src={ex.gif_url}
+                alt={ex.nombre + " GIF"}
+                className="card-img-top"
+                style={{ objectFit: "cover", height: 180 }}
+              />
+            )}
+            {ex.foto_url && (
+              <img
+                src={ex.foto_url}
+                alt={ex.nombre}
+                className="card-img-top"
+                style={{ objectFit: "cover", height: 180 }}
+              />
+            )}
+
               <div className="card-body">
                 <h5 className="card-title">{ex.nombre}</h5>
                 {ex.grupo_muscular && <span className="badge bg-info mb-2">{ex.grupo_muscular}</span>}
@@ -170,6 +182,16 @@ export default function ExercisesPage() {
                 onChange={e => setEditDesc(e.target.value)}
               />
             </div>
+            <div className="mb-2">
+              <label className="form-label">URL GIF</label>
+              <input
+                className="form-control"
+                value={editGifUrl}
+                onChange={e => setEditGifUrl(e.target.value)}
+                placeholder="https://fitcron.com/ejemplo.gif"
+              />
+            </div>
+
             <div className="mb-2">
               <label className="form-label">Máquina</label>
               <select

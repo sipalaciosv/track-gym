@@ -48,7 +48,13 @@ export default function MachinesPage() {
     const file = e.target.files && e.target.files[0]
     if (file) setEditImageFile(file)
   }
-
+function slugify(text: string) {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")   // quita tildes
+    .replace(/[^\w\-]/g, "_")          // reemplaza cualquier cosa rara por _
+    .toLowerCase();
+}
   async function handleEditSave() {
     if (!machineToEdit) return
     setEditUploading(true)
@@ -57,8 +63,9 @@ export default function MachinesPage() {
 
     // Si el usuario sube un archivo, súbelo al bucket y usa esa url
     if (editImageFile) {
-      const ext = editImageFile.name.split('.').pop()
-      const fileName = `maquinas/${editName.replace(/\s+/g, '_')}_${Date.now()}.${ext}`
+      const ext = editImageFile.name.split('.').pop();
+      const sanitizedName = slugify(editName);
+      const fileName = `${sanitizedName}_${Date.now()}.${ext}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("maquinas") // Asegúrate que el bucket se llama así
         .upload(fileName, editImageFile, {

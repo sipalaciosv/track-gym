@@ -14,6 +14,7 @@ export default function NewExercisePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [machines, setMachines] = useState<Machine[]>([])
+const [gifUrl, setGifUrl] = useState("")
 
   const router = useRouter()
   const supabase = createClient()
@@ -62,6 +63,7 @@ export default function NewExercisePage() {
         machine_id: machineId,
         descripcion,
         foto_url,
+        gif_url: gifUrl, 
       },
     ])
 
@@ -129,6 +131,17 @@ export default function NewExercisePage() {
             onChange={e => setFotoFile(e.target.files?.[0] ?? null)}
           />
         </div>
+        <div className="mb-3">
+        <label className="form-label">URL GIF</label>
+        <input
+          type="url"
+          className="form-control"
+          value={gifUrl}
+          onChange={e => setGifUrl(e.target.value)}
+          placeholder="https://fitcron.com/ejemplo.gif"
+        />
+      </div>
+
         {error && <div className="alert alert-danger">{error}</div>}
         <button type="submit" className="btn btn-success" disabled={loading}>
           {loading ? "Guardando..." : "Agregar ejercicio"}

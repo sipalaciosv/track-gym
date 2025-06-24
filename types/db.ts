@@ -13,6 +13,7 @@ export interface Exercise {
   grupo_muscular?: string
   machine_id?: string
   foto_url?: string
+  gif_url?: string
   descripcion?: string
 }
 
