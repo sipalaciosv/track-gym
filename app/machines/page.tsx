@@ -7,6 +7,7 @@ import { Machine } from "@/types/db"
 export default function MachinesPage() {
   const [machines, setMachines] = useState<Machine[]>([])
   const [loading, setLoading] = useState(true)
+const [expandedImg, setExpandedImg] = useState<string | null>(null);
 
   // Edit Modal states
   const [showEditModal, setShowEditModal] = useState(false)
@@ -133,13 +134,20 @@ function slugify(text: string) {
           <div key={machine.id} className="col-md-4 mb-4">
             <div className="card h-100">
               {machine.foto_url && (
-                <img
-                  src={machine.foto_url}
-                  alt={machine.nombre}
-                  className="card-img-top"
-                  style={{ objectFit: "cover", height: 180 }}
-                />
-              )}
+  <img
+    src={machine.foto_url}
+    alt={machine.nombre}
+    className="card-img-top"
+    style={{
+      objectFit: "cover",  // Muestra la imagen completa
+      height: 180,
+      cursor: "pointer"
+    }}
+    onClick={() => machine.foto_url && setExpandedImg(machine.foto_url)}
+
+  />
+)}
+
               <div className="card-body">
                 <h5 className="card-title">{machine.nombre}</h5>
                 {machine.descripcion && <p className="card-text">{machine.descripcion}</p>}
@@ -233,6 +241,36 @@ function slugify(text: string) {
           </div>
         </div>
       )}
+      {expandedImg && (
+  <div
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      background: "rgba(0,0,0,0.85)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 4000
+    }}
+    onClick={() => setExpandedImg(null)}
+  >
+    <img
+      src={expandedImg}
+      alt="máquina"
+      style={{
+        maxHeight: "80vh",
+        maxWidth: "95vw",
+        borderRadius: 15,
+        boxShadow: "0 2px 16px #000"
+      }}
+      onClick={e => e.stopPropagation()} // para que el click en la imagen no cierre el modal
+    />
+  </div>
+)}
+
     </div>
   )
 }

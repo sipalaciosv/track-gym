@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
 import { Profile } from "@/types/db"
+import { LogOut, User, Dumbbell, FileText } from "lucide-react"
 
 export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null)
@@ -12,19 +13,15 @@ export default function DashboardPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  // Cargar usuario y perfil al entrar
   useEffect(() => {
     const getUser = async () => {
       const { data: { user }, error } = await supabase.auth.getUser()
       if (!user) {
-        // Si no hay usuario, manda al login
         router.push("/login")
         return
       }
       setUserEmail(user.email ?? null)
 
-
-      // Ahora carga el profile (nombre)
       const { data: profileData } = await supabase
         .from("profiles")
         .select("*")
@@ -33,7 +30,6 @@ export default function DashboardPage() {
       setProfile(profileData || null)
       setLoading(false)
     }
-
     getUser()
     // eslint-disable-next-line
   }, [])
@@ -44,21 +40,61 @@ export default function DashboardPage() {
   }
 
   if (loading) {
-    return <div className="container mt-5">Cargando...</div>
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+        <div className="spinner-border text-danger" role="status"><span className="visually-hidden">Cargando...</span></div>
+      </div>
+    )
   }
 
   return (
-    <div className="container mt-5">
-      <h1>Dashboard</h1>
-      <p>
-        <strong>Correo:</strong> {userEmail}
-      </p>
-      <p>
-        <strong>Nombre de perfil:</strong> {profile?.nombre || "No definido"}
-      </p>
-      <button className="btn btn-outline-danger" onClick={handleLogout}>
-        Cerrar sesión
-      </button>
+    <div
+      className="d-flex justify-content-center align-items-center"
+      style={{
+        minHeight: "95vh",
+        background: "linear-gradient(135deg, #f2f2f7 0%, #fff 100%)",
+      }}
+    >
+      <div className="card shadow-lg p-4" style={{ minWidth: 350, borderRadius: 20, background: "#fff" }}>
+        <div className="mb-3 d-flex align-items-center gap-3">
+          <User size={38} color="#990300" strokeWidth={2.2} />
+          <div>
+            <h2 className="mb-0" style={{ fontWeight: 700 }}>¡Hola, {profile?.nombre || "Atleta"}!</h2>
+            <small className="text-muted">{userEmail}</small>
+          </div>
+        </div>
+
+        <hr />
+
+        <div className="row g-3 mb-4">
+          <div className="col-12 col-md-6">
+            <a href="/entries" className="text-decoration-none">
+              <div className="card shadow-sm h-100 p-3 d-flex flex-row align-items-center gap-3 hover-shadow" style={{ borderRadius: 15 }}>
+                <FileText size={30} color="#990300" />
+                <div>
+                  <div style={{ fontWeight: 600 }}>Historial</div>
+                  <small className="text-muted">Ver todos tus registros</small>
+                </div>
+              </div>
+            </a>
+          </div>
+          <div className="col-12 col-md-6">
+            <a href="/exercises" className="text-decoration-none">
+              <div className="card shadow-sm h-100 p-3 d-flex flex-row align-items-center gap-3 hover-shadow" style={{ borderRadius: 15 }}>
+                <Dumbbell size={30} color="#990300" />
+                <div>
+                  <div style={{ fontWeight: 600 }}>Ejercicios</div>
+                  <small className="text-muted">Gestiona tus ejercicios</small>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <button className="btn btn-outline-danger mt-3 w-100 d-flex align-items-center justify-content-center gap-2" onClick={handleLogout}>
+          <LogOut size={18} /> Cerrar sesión
+        </button>
+      </div>
     </div>
   )
 }
