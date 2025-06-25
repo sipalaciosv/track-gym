@@ -110,10 +110,14 @@ function slugify(text: string) {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("¿Seguro que quieres borrar esta máquina?")) return
-    const { error } = await supabase.from("machines").delete().eq("id", id)
-    if (!error) setMachines(machines.filter(m => m.id !== id))
-    else alert("Error al borrar: " + error.message)
+    if (!confirm("¿Seguro que quieres ocultar esta máquina?")) return;
+  const { error } = await supabase
+    .from("machines")
+    .update({ activo: false })
+    .eq("activo", true)
+    .eq("id", id);
+  if (!error) setMachines(machines => machines.map(m => m.id === id ? { ...m, activo: false } : m));
+  else alert("Error al ocultar: " + error.message);
   }
 
   if (loading) {

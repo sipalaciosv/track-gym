@@ -32,6 +32,7 @@ export default function ExercisesPage() {
       const { data, error } = await supabase
         .from("exercises")
         .select("*, machine:machines(*)")
+        .eq("activo", true)
         .order("nombre", { ascending: true })
       if (!error && data) setExercises(data)
       setLoading(false)
@@ -93,10 +94,13 @@ export default function ExercisesPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("¿Seguro que quieres borrar este ejercicio?")) return
-    const { error } = await supabase.from("exercises").delete().eq("id", id)
-    if (!error) setExercises(exercises.filter(e => e.id !== id))
-    else alert("Error al borrar: " + error.message)
+    if (!confirm("¿Seguro que quieres ocultar este ejercicio?")) return;
+  const { error } = await supabase
+    .from("exercises")
+    .update({ activo: false })
+    .eq("id", id);
+  if (!error) setExercises(exercises => exercises.map(e => e.id === id ? { ...e, activo: false } : e));
+  else alert("Error al ocultar: " + error.message);
   }
 
   if (loading) return <div className="container mt-5">Cargando ejercicios...</div>
