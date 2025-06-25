@@ -5,6 +5,7 @@ export interface Machine {
   nombre: string
   foto_url?: string
   descripcion?: string
+  activo?: boolean  
 }
 
 export interface Exercise {
@@ -15,6 +16,7 @@ export interface Exercise {
   foto_url?: string
   gif_url?: string
   descripcion?: string
+  activo?: boolean  
 }
 
 export interface WorkoutEntry {
