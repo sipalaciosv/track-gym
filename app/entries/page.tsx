@@ -45,21 +45,35 @@ useEffect(() => {
 }, []);
 
   useEffect(() => {
-    const fetchEntries = async () => {
-      const { data } = await supabase
-        .from("workout_entries")
-        .select(`
-          *,
-          profiles(id, nombre),
-          exercises(id, nombre),
-          machines(id, nombre)
-        `)
-        .order("fecha", { ascending: false })
-      setEntries(data || [])
-      setLoading(false)
+  const fetchEntries = async () => {
+    // Primero, obten el usuario autenticado
+    const { data: userData } = await supabase.auth.getUser()
+    const userEmail = userData?.user?.email
+    const userId = userData?.user?.id
+
+    // Haz el query de entries
+    let query = supabase
+      .from("workout_entries")
+      .select(`
+        *,
+        profiles(id, nombre),
+        exercises(id, nombre),
+        machines(id, nombre)
+      `)
+      .order("fecha", { ascending: false })
+
+    // Si NO es admin, solo busca por su user_id
+    if (userEmail !== "thexzebagb@live.com" && userId) {
+      query = query.eq("user_id", userId)
     }
-    fetchEntries()
-  }, [])
+
+    const { data, error } = await query
+    setEntries(data || [])
+    setLoading(false)
+  }
+  fetchEntries()
+}, [])
+
 // Opciones únicas, solo ejercicios/maquinas que existen en registros
 const exerciseOptions = Array.from(
   new Set(entries.map(e => e.exercises?.nombre).filter(Boolean))
